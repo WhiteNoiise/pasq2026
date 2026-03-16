@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌸 Pasquetta 2026 - Le Fontanelle</title>
+  <style>
+    :root {
+      --pink: #ff5fa2;
+      --purple: #7b61ff;
+      --teal: #20c997;
+      --yellow: #ffbf47;
+      --red: #ff6b6b;
+      --blue: #4dabf7;
+      --bg1: #6a11cb;
+      --bg2: #2575fc;
+      --card: rgba(255,255,255,.95);
+      --text: #243447;
+      --muted: #6c757d;
+      --shadow: 0 12px 30px rgba(0,0,0,.18);
+      --radius: 20px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      color: var(--text);
+      background: linear-gradient(135deg, var(--bg1), var(--bg2) 45%, #ff8cc6);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container { max-width: 1280px; margin: 0 auto; }
+    .card, .header, .meme-section { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .header { padding: 28px; margin-bottom: 20px; text-align: center; }
+    h1 { margin: 0 0 10px; color: var(--pink); font-size: clamp(2rem, 5vw, 3rem); }
+    h2, h3 { margin-top: 0; }
+    .subtitle { font-size: 1.1rem; }
+    .info-grid, .stats-grid, .shopping-grid, .participants-grid {
+      display: grid;
+      gap: 15px;
+    }
+    .info-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 20px; }
+    .stats-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin: 20px 0; }
+    .shopping-grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .participants-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 15px; }
+    .info-card, .stat-card {
+      color: white; padding: 16px; border-radius: 18px; text-align: center;
+      background: linear-gradient(135deg, #20c997, #4dabf7);
+    }
+    .stat-card:nth-child(2) { background: linear-gradient(135deg, #ff922b, #ff6b6b); }
+    .stat-card:nth-child(3) { background: linear-gradient(135deg, #12b886, #63e6be); }
+    .stat-card:nth-child(4) { background: linear-gradient(135deg, #4c6ef5, #74c0fc); }
+    .stat-number { font-size: 2.1rem; font-weight: 800; }
+    .meme-section, .card { padding: 22px; margin-bottom: 20px; }
+    .meme-img {
+      width: 100%; max-width: 420px; border-radius: 18px; cursor: pointer;
+      box-shadow: 0 8px 18px rgba(0,0,0,.15); transition: transform .2s ease;
+    }
+    .meme-img:hover { transform: scale(1.03); }
+    .tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .tab, .btn {
+      border: 0; cursor: pointer; border-radius: 14px; font-weight: 700;
+      transition: .2s ease; box-shadow: 0 8px 18px rgba(0,0,0,.15);
+    }
+    .tab {
+      background: white; color: var(--text); padding: 14px 22px; font-size: 1rem;
+    }
+    .tab.active, .btn {
+      color: white; background: linear-gradient(135deg, var(--pink), var(--yellow));
+    }
+    .tab:hover, .btn:hover { transform: translateY(-2px); }
+    .content-section { display: none; }
+    .content-section.active { display: block; }
+    .participant-card {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white; padding: 16px; border-radius: 18px; box-shadow: var(--shadow);
+    }
+    .participant-name { font-size: 1.05rem; font-weight: 800; margin-bottom: 8px; }
+    .badge {
+      display: inline-block; padding: 6px 10px; border-radius: 999px; margin: 4px 5px 0 0;
+      font-size: .78rem; font-weight: 800;
+    }
+    .badge-vegan { background: #d3f9d8; color: #1b4332; }
+    .badge-driver { background: #ffd43b; color: #5f3c00; }
+    .badge-astemio { background: #d0ebff; color: #0b7285; }
+    .badge-paid { background: #ffe3e3; color: #c92a2a; }
+    .muted { color: var(--muted); }
+    .car-card {
+      background: linear-gradient(135deg, #ff922b, #ff6b6b);
+      color: white; padding: 18px; border-radius: 18px; margin-bottom: 14px; box-shadow: var(--shadow);
+    }
+    .car-header { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 12px; }
+    .passengers-list, .dropzone {
+      min-height: 84px; border-radius: 14px; padding: 12px;
+      background: rgba(255,255,255,.2);
+    }
+    .unassigned-box { background: #f1f3f5; }
+    .passenger-item {
+      display: inline-block; margin: 4px; padding: 9px 12px; border-radius: 999px;
+      background: white; color: var(--text); font-weight: 700; cursor: grab;
+    }
+    .shopping-category {
+      background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.92));
+      border-radius: 18px; padding: 18px; box-shadow: var(--shadow);
+    }
+    .shopping-item {
+      display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed #e9ecef;
+    }
+    .shopping-item:last-child { border-bottom: 0; }
+    input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+    input[type="text"], select {
+      width: 100%; border: 2px solid #dee2e6; border-radius: 12px; padding: 12px; font-size: 1rem;
+    }
+    .btn { padding: 12px 18px; margin: 5px 5px 0 0; }
+    .btn-secondary { background: linear-gradient(135deg, #20c997, #4dabf7); }
+    .btn-danger { background: linear-gradient(135deg, #fa5252, #c92a2a); }
+    .progress-wrap {
+      margin: 15px 0 20px; background: #e9ecef; border-radius: 999px; overflow: hidden; height: 18px;
+    }
+    .progress-bar {
+      height: 100%; width: 0%; color: white; font-size: .75rem; text-align: center;
+      background: linear-gradient(90deg, #12b886, #51cf66); transition: width .25s ease;
+    }
+    .panel {
+      background: #fff5f7; padding: 18px; border-radius: 18px; margin-bottom: 15px;
+    }
+    .panel.blue { background: #e7f5ff; }
+    .panel.green { background: #ebfbee; }
+    .inline-note {
+      margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: #fff9db; font-weight: 600;
+    }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .row {
+      display: grid; grid-template-columns: 1.8fr 1fr 1fr auto; gap: 10px; align-items: center;
+      background: #f8f9fa; padding: 14px; border-radius: 16px; margin-bottom: 10px;
+    }
+    .modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,.58); display: none;
+      align-items: center; justify-content: center; padding: 20px; z-index: 1000;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      width: min(560px, 100%); background: white; border-radius: 22px; padding: 24px; box-shadow: 0 18px 40px rgba(0,0,0,.35);
+      max-height: 90vh; overflow: auto;
+    }
+    .close-modal { float: right; font-size: 2rem; cursor: pointer; color: var(--pink); }
+    .status-banner {
+      margin-top: 15px; padding: 12px 14px; border-radius: 14px; font-weight: 700;
+      background: #fff3bf; color: #7f5f00;
+    }
+    .status-banner.ok { background: #d3f9d8; color: #2b8a3e; }
+    .small { font-size: .92rem; }
+    @media (max-width: 840px) { .row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🌸 PASQUETTA 2026 🌸</h1>
+      <div class="subtitle">Area Pic Nic Le Fontanelle</div>
+      <div class="info-grid">
+        <div class="info-card">📅 Lunedì 6 Aprile 2026</div>
+        <div class="info-card">🕖 Ritrovo ore 7:00</div>
+        <div class="info-card">📍 Eurospin Carinaro (CE)</div>
+        <div class="info-card">🎯 Via Cesine, 20/1, 82037 Castelvenere BN</div>
+      </div>
+      <div id="syncBanner" class="status-banner">⚠️ Modalità locale attiva. Inserisci la configurazione Firebase per avere sincronizzazione online.</div>
+    </div>
+
+    <div class="meme-section">
+      <h2 style="color: var(--pink);">😂 Mood della gita</h2>
+      <img class="meme-img" id="memeImg" alt="Meme Pasquetta" src="https://pplx-res.cloudinary.com/image/upload/pplx_search_images/7a2af84952271d1217f1b54c9fc2108cea110152.jpg">
+      <div class="muted">Clicca il meme per cambiarlo.</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="partecipanti">👥 Partecipanti</button>
+      <button class="tab" data-tab="auto">🚗 Auto</button>
+      <button class="tab" data-tab="cibo">🍕 Cibo</button>
+      <button class="tab" data-tab="spesa">🛒 Spesa</button>
+      <button class="tab" data-tab="gestione">⚙️ Gestione</button>
+    </div>
+
+    <section id="partecipanti" class="content-section active">
+      <div class="card">
+        <h2 style="color: var(--pink);">👥 Partecipanti</h2>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-number" id="totalCount">0</div><div>Totale</div></div>
+          <div class="stat-card"><div class="stat-number" id="driverCount">0</div><div>Guidatori</div></div>
+          <div class="stat-card"><div class="stat-number" id="veganCount">0</div><div>Vegani</div></div>
+          <div class="stat-card"><div class="stat-number" id="astemioCount">0</div><div>Astemi</div></div>
+        </div>
+        <div class="inline-note" id="quoteBox">💶 Quota: 20€ a persona</div>
+        <div id="participantsList" class="participants-grid"></div>
+      </div>
+    </section>
+
+    <section id="auto" class="content-section">
+      <div class="card">
+        <h2 style="color: var(--pink);">🚗 Organizzazione auto</h2>
+        <p class="muted">Massimo 4 persone totali per auto, guidatore compreso. Quindi ogni auto può avere fino a 3 passeggeri.</p>
+        <div id="carsSection"></div>
+        <h3 style="color: var(--purple); margin-top: 18px;">Persone da assegnare</h3>
+        <div id="unassignedList" class="passengers-list unassigned-box"></div>
+      </div>
+    </section>
+
+    <section id="cibo" class="content-section">
+      <div class="card">
+        <h2 style="color: var(--pink);">🍕 Preferenze alimentari</h2>
+        <div class="panel">
+          <h3>🌱 Vegani</h3>
+          <div id="veganNames"></div>
+          <div class="muted small">Ricorda: niente carne, pesce, latticini, uova e miele.</div>
+        </div>
+        <div class="panel blue">
+          <h3>💧 Astemi</h3>
+          <div id="astemioNames"></div>
+          <div class="muted small">Ricorda: niente bevande alcoliche.</div>
+        </div>
+        <div class="panel green">
+          <h3>🍖 Tutti gli altri</h3>
+          <div id="othersFood"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="spesa" class="content-section">
+      <div class="card">
+        <h2 style="color: var(--pink);">🛒 Lista della spesa</h2>
+        <div class="progress-wrap"><div id="progressBar" class="progress-bar">0%</div></div>
+        <div id="shoppingGrid" class="shopping-grid"></div>
+        <div id="shoppingDone" class="inline-note" style="display:none;">🎉 Spesa completata! Adesso manca solo non dimenticare il carbone... ops, non era in lista 😂</div>
+      </div>
+    </section>
+
+    <section id="gestione" class="content-section">
+      <div class="card">
+        <h2 style="color: var(--pink);">⚙️ Gestione</h2>
+        <div class="toolbar">
+          <button class="btn" id="addBtn">➕ Aggiungi partecipante</button>
+          <button class="btn btn-secondary" id="driverBtn">🚗 Gestisci guidatori</button>
+          <button class="btn btn-secondary" id="seedBtn">🔄 Ripristina dati iniziali</button>
+        </div>
+        <div id="managementList"></div>
+      </div>
+    </section>
+  </div>
+
+  <div id="addModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" data-close="addModal">&times;</span>
+      <h2 style="color: var(--pink);">Aggiungi partecipante</h2>
+      <div style="display:grid; gap:12px;">
+        <div>
+          <label>Nome e cognome</label>
+          <input type="text" id="newName" placeholder="Es. Mario Rossi">
+        </div>
+        <label><input type="checkbox" id="newVegan"> 🌱 Vegano</label>
+        <label><input type="checkbox" id="newAstemio"> 💧 Astemio</label>
+        <label><input type="checkbox" id="newDriver"> 🚗 Guidatore</label>
+        <button class="btn" id="saveParticipantBtn">Salva</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="driverModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" data-close="driverModal">&times;</span>
+      <h2 style="color: var(--pink);">Gestisci guidatori</h2>
+      <div id="driverCheckboxes"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getDatabase, ref, onValue, set, update, get } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+    const firebaseConfig = {
+      apiKey: 'INCOLLA_QUI_API_KEY',
+      authDomain: 'INCOLLA_QUI_AUTH_DOMAIN',
+      databaseURL: 'INCOLLA_QUI_DATABASE_URL',
+      projectId: 'INCOLLA_QUI_PROJECT_ID',
+      storageBucket: 'INCOLLA_QUI_STORAGE_BUCKET',
+      messagingSenderId: 'INCOLLA_QUI_MESSAGING_SENDER_ID',
+      appId: 'INCOLLA_QUI_APP_ID'
+    };
+
+    const defaultState = {
+      quotaPerPerson: 20,
+      participants: [
+        { name: 'Francesco Cesaro', vegan: false, astemio: false, driver: false, paid: false },
+        { name: 'Maria Domenica Bortone', vegan: false, astemio: false, driver: false, paid: false },
+        { name: 'Andrea Pellegrino', vegan: false, astemio: false, driver: false, paid: false },
+        { name: 'Giusy Aquilante', vegan: false, astemio: false, driver: false, paid: false },
+        { name: 'Manuel Cesaro', vegan: false, astemio: false, driver: true, paid: false },
+        { name: 'Maria Rosaria', vegan: false, astemio: false, driver: false, paid: false },
+        { name: 'Oreste Bortone', vegan: false, astemio: true, driver: true, paid: false },
+        { name: 'Antonio Bortone', vegan: false, astemio: false, driver: false, paid: false },
+        { name: 'Carmen Fabozzi', vegan: false, astemio: false, driver: false, paid: false },
+        { name: 'Salvatore Pio Schiavone', vegan: false, astemio: false, driver: false, paid: false },
+        { name: 'Carmela Valletta', vegan: true, astemio: false, driver: false, paid: false },
+        { name: 'Luca Zaccariello', vegan: false, astemio: false, driver: false, paid: false },
+        { name: 'Luigi Caiazzo', vegan: false, astemio: false, driver: true, paid: false },
+        { name: 'Ornella Russo', vegan: false, astemio: false, driver: false, paid: false },
+        { name: 'Stanislao Pratillo', vegan: false, astemio: false, driver: false, paid: false },
+        { name: 'Maddalena Bortone', vegan: false, astemio: false, driver: false, paid: false },
+        { name: 'Mario Cuozzo', vegan: false, astemio: false, driver: false, paid: false },
+        { name: 'Raffaella Principato', vegan: false, astemio: false, driver: false, paid: false },
+        { name: 'Rosalia Di Domenico', vegan: false, astemio: false, driver: false, paid: false },
+        { name: 'Marika Moretti', vegan: false, astemio: false, driver: false, paid: false }
+      ],
+      cars: {
+        'Oreste Bortone': [],
+        'Manuel Cesaro': [],
+        'Luigi Caiazzo': []
+      },
+      shoppingList: {
+        'Carne': [
+          { name: 'Salsiccia', done: false },
+          { name: 'Hamburger', done: false }
+        ],
+        'Contorni e pane': [
+          { name: 'Patatine fritte', done: false },
+          { name: 'Panini', done: false },
+          { name: 'Contorni vari', done: false }
+        ],
+        'Materiale': [
+          { name: 'Posate di plastica', done: false },
+          { name: 'Contenitori di alluminio', done: false }
+        ],
+        'Bevande': [
+          { name: 'Bibite varie', done: false },
+          { name: 'Bevande analcoliche per Oreste', done: false }
+        ],
+        'Condimenti': [
+          { name: 'Sale', done: false },
+          { name: 'Olio per carne e patatine', done: false },
+          { name: 'Salse e condimenti vari', done: false }
+        ],
+        'Angolo vegan': [
+          { name: 'Opzione vegana per Carmela', done: false }
+        ]
+      }
+    };
+
+    const memes = [
+      'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/7a2af84952271d1217f1b54c9fc2108cea110152.jpg',
+      'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/68d43bda38087dd7e912e8d2dcfed70e2a8c8092.jpg',
+      'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/a4be6b08bd7a15213cb5e89f23aac25fa90e1401.jpg'
+    ];
+
+    let state = structuredClone(defaultState);
+    let currentMemeIndex = 0;
+    let db = null;
+    let onlineMode = false;
+    const dbPath = 'pasquetta2026';
+
+    const byId = (id) => document.getElementById(id);
+    const syncBanner = byId('syncBanner');
+
+    function isFirebaseConfigured() {
+      return !Object.values(firebaseConfig).some(v => String(v).startsWith('INCOLLA_QUI_'));
+    }
+
+    async function init() {
+      bindUI();
+      if (isFirebaseConfigured()) {
+        try {
+          const app = initializeApp(firebaseConfig);
+          db = getDatabase(app);
+          const rootRef = ref(db, dbPath);
+          const snap = await get(rootRef);
+          if (!snap.exists()) await set(rootRef, defaultState);
+          onValue(rootRef, (snapshot) => {
+            state = snapshot.val() || structuredClone(defaultState);
+            onlineMode = true;
+            syncBanner.textContent = '✅ Modalità online attiva. Le modifiche si sincronizzano per tutti dal link.';
+            syncBanner.classList.add('ok');
+            renderAll();
+          });
+        } catch (err) {
+          console.error(err);
+          syncBanner.textContent = '⚠️ Firebase non collegato correttamente. L\'app funziona in locale finché non incolli i dati giusti.';
+          renderAll();
+        }
+      } else {
+        renderAll();
+      }
+    }
+
+    async function saveState(partial = null) {
+      if (onlineMode && db) {
+        if (partial) await update(ref(db, dbPath), partial);
+        else await set(ref(db, dbPath), state);
+      } else {
+        localStorage.setItem('pasquetta2026-local', JSON.stringify(state));
+        renderAll();
+      }
+    }
+
+    function loadLocalBackup() {
+      const raw = localStorage.getItem('pasquetta2026-local');
+      if (raw) {
+        try { state = JSON.parse(raw); } catch (_) {}
+      }
+    }
+
+    function bindUI() {
+      loadLocalBackup();
+      document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', () => showTab(btn.dataset.tab)));
+      byId('memeImg').addEventListener('click', changeMeme);
+      byId('addBtn').addEventListener('click', () => openModal('addModal'));
+      byId('driverBtn').addEventListener('click', openDriverModal);
+      byId('seedBtn').addEventListener('click', async () => {
+        if (!confirm('Vuoi ripristinare i dati iniziali?')) return;
+        state = structuredClone(defaultState);
+        await saveState();
+      });
+      byId('saveParticipantBtn').addEventListener('click', addParticipant);
+      document.querySelectorAll('.close-modal').forEach(el => el.addEventListener('click', () => closeModal(el.dataset.close)));
+      window.addEventListener('click', (e) => {
+        document.querySelectorAll('.modal.active').forEach(m => { if (e.target === m) m.classList.remove('active'); });
+      });
+    }
+
+    function showTab(tabName) {
+      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      byId(tabName).classList.add('active');
+      document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+      if (tabName === 'gestione') renderManagementList();
+      if (tabName === 'auto') renderCars();
+    }
+
+    function changeMeme() {
+      currentMemeIndex = (currentMemeIndex + 1) % memes.length;
+      byId('memeImg').src = memes[currentMemeIndex];
+    }
+
+    function renderAll() {
+      renderParticipants();
+      renderFood();
+      renderCars();
+      renderShopping();
+      renderManagementList();
+    }
+
+    function renderParticipants() {
+      const list = byId('participantsList');
+      list.innerHTML = '';
+      state.participants.forEach((p, index) => {
+        const div = document.createElement('div');
+        div.className = 'participant-card';
+        div.innerHTML = `
+          <div class="participant-name">${p.name}</div>
+          <div>
+            ${p.vegan ? '<span class="badge badge-vegan">🌱 Vegano</span>' : ''}
+            ${p.astemio ? '<span class="badge badge-astemio">💧 Astemio</span>' : ''}
+            ${p.driver ? '<span class="badge badge-driver">🚗 Guidatore</span>' : ''}
+            ${p.paid ? '<span class="badge badge-paid">💶 Pagato</span>' : ''}
+          </div>
+          <div style="margin-top:12px;">
+            <button class="btn btn-secondary" style="padding:8px 12px;" onclick="window.togglePaid(${index})">${p.paid ? 'Annulla quota' : 'Segna quota'}</button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+      updateStats();
+    }
+
+    function updateStats() {
+      const participants = state.participants;
+      byId('totalCount').textContent = participants.length;
+      byId('driverCount').textContent = participants.filter(p => p.driver).length;
+      byId('veganCount').textContent = participants.filter(p => p.vegan).length;
+      byId('astemioCount').textContent = participants.filter(p => p.astemio).length;
+      const paid = participants.filter(p => p.paid).length;
+      const total = participants.length * (state.quotaPerPerson || 20);
+      const collected = paid * (state.quotaPerPerson || 20);
+      byId('quoteBox').textContent = `💶 Quota: ${state.quotaPerPerson || 20}€ a persona · Incassati ${collected}€ su ${total}€`;
+    }
+
+    function ensureDriverCars() {
+      const driverNames = state.participants.filter(p => p.driver).map(p => p.name);
+      state.cars = state.cars || {};
+      driverNames.forEach(name => { if (!state.cars[name]) state.cars[name] = []; });
+      Object.keys(state.cars).forEach(driver => {
+        if (!driverNames.includes(driver)) delete state.cars[driver];
+        else state.cars[driver] = state.cars[driver].filter(name => name !== driver);
+      });
+    }
+
+    function renderCars() {
+      ensureDriverCars();
+      const section = byId('carsSection');
+      section.innerHTML = '';
+      const drivers = state.participants.filter(p => p.driver);
+      if (!drivers.length) {
+        section.innerHTML = '<div class="panel">Nessun guidatore disponibile.</div>';
+        byId('unassignedList').innerHTML = '';
+        return;
+      }
+      drivers.forEach(driver => {
+        const passengers = state.cars[driver.name] || [];
+        const used = passengers.length + 1;
+        const remaining = 4 - used;
+        const wrap = document.createElement('div');
+        wrap.className = 'car-card';
+        wrap.innerHTML = `
+          <div class="car-header">
+            <div><strong>🚗 Auto di ${driver.name}</strong><div class="small">${used}/4 persone totali</div></div>
+            <div>${remaining >= 0 ? remaining : 0} posti liberi</div>
+          </div>
+          <div class="dropzone" data-driver="${driver.name}"></div>
+        `;
+        const dz = wrap.querySelector('.dropzone');
+        dz.addEventListener('dragover', ev => ev.preventDefault());
+        dz.addEventListener('drop', ev => handleDrop(ev, driver.name));
+        passengers.forEach(name => dz.appendChild(createPassengerChip(name)));
+        section.appendChild(wrap);
+      });
+      renderUnassigned();
+    }
+
+    function createPassengerChip(name) {
+      const chip = document.createElement('span');
+      chip.className = 'passenger-item';
+      chip.textContent = name;
+      chip.draggable = true;
+      chip.addEventListener('dragstart', (ev) => {
+        ev.dataTransfer.setData('personName', name);
+        const fromDriver = Object.keys(state.cars || {}).find(d => (state.cars[d] || []).includes(name));
+        ev.dataTransfer.setData('fromDriver', fromDriver || '');
+      });
+      chip.addEventListener('dblclick', () => removeFromCars(name));
+      return chip;
+    }
+
+    function renderUnassigned() {
+      const box = byId('unassignedList');
+      const assigned = Object.values(state.cars || {}).flat();
+      const drivers = state.participants.filter(p => p.driver).map(p => p.name);
+      const unassigned = state.participants
+        .map(p => p.name)
+        .filter(name => !assigned.includes(name) && !drivers.includes(name));
+      box.innerHTML = '';
+      box.addEventListener('dragover', ev => ev.preventDefault());
+      box.addEventListener('drop', ev => {
+        ev.preventDefault();
+        const name = ev.dataTransfer.getData('personName');
+        removeFromCars(name);
+      });
+      if (!unassigned.length) {
+        box.innerHTML = '<div class="muted">Tutti assegnati.</div>';
+        return;
+      }
+      unassigned.forEach(name => box.appendChild(createPassengerChip(name)));
+    }
+
+    async function handleDrop(ev, toDriver) {
+      ev.preventDefault();
+      const name = ev.dataTransfer.getData('personName');
+      const fromDriver = ev.dataTransfer.getData('fromDriver');
+      if (!name || name === toDriver) return;
+      ensureDriverCars();
+      const list = state.cars[toDriver] || [];
+      if (list.includes(name)) return;
+      if ((list.length + 1) >= 4) {
+        alert('Questa auto ha già 4 persone totali, guidatore compreso.');
+        return;
+      }
+      if (fromDriver && state.cars[fromDriver]) state.cars[fromDriver] = state.cars[fromDriver].filter(p => p !== name);
+      state.cars[toDriver].push(name);
+      await saveState({ cars: state.cars });
+    }
+
+    async function removeFromCars(name) {
+      Object.keys(state.cars || {}).forEach(driver => {
+        state.cars[driver] = state.cars[driver].filter(p => p !== name);
+      });
+      await saveState({ cars: state.cars });
+    }
+
+    function renderFood() {
+      const vegans = state.participants.filter(p => p.vegan).map(p => p.name);
+      const astemi = state.participants.filter(p => p.astemio).map(p => p.name);
+      const others = state.participants.filter(p => !p.vegan && !p.astemio).length;
+      byId('veganNames').innerHTML = vegans.length ? vegans.map(n => `<div><strong>${n}</strong></div>`).join('') : '<div class="muted">Nessuno</div>';
+      byId('astemioNames').innerHTML = astemi.length ? astemi.map(n => `<div><strong>${n}</strong></div>`).join('') : '<div class="muted">Nessuno</div>';
+      byId('othersFood').innerHTML = `<strong>${others} persone</strong><div class="muted small">Mangiano e bevono tutto 🎉</div>`;
+    }
+
+    function renderShopping() {
+      const grid = byId('shoppingGrid');
+      grid.innerHTML = '';
+      const categories = state.shoppingList || {};
+      let done = 0, total = 0;
+      Object.entries(categories).forEach(([category, items]) => {
+        const card = document.createElement('div');
+        card.className = 'shopping-category';
+        const rows = items.map((item, i) => {
+          total += 1;
+          if (item.done) done += 1;
+          return `
+            <label class="shopping-item">
+              <input type="checkbox" ${item.done ? 'checked' : ''} onchange="window.toggleShopping('${encodeURIComponent(category)}', ${i})">
+              <span>${item.name}</span>
+            </label>
+          `;
+        }).join('');
+        card.innerHTML = `<h3 style="color: var(--purple);">${category}</h3>${rows}`;
+        grid.appendChild(card);
+      });
+      const percent = total ? Math.round((done / total) * 100) : 0;
+      const bar = byId('progressBar');
+      bar.style.width = percent + '%';
+      bar.textContent = percent + '%';
+      byId('shoppingDone').style.display = percent === 100 ? 'block' : 'none';
+    }
+
+    function renderManagementList() {
+      const list = byId('managementList');
+      list.innerHTML = '';
+      state.participants.forEach((p, index) => {
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+          <div>
+            <strong>${p.name}</strong><br>
+            ${p.vegan ? '<span class="badge badge-vegan">🌱 Vegano</span>' : ''}
+            ${p.astemio ? '<span class="badge badge-astemio">💧 Astemio</span>' : ''}
+            ${p.driver ? '<span class="badge badge-driver">🚗 Guidatore</span>' : ''}
+            ${p.paid ? '<span class="badge badge-paid">💶 Pagato</span>' : ''}
+          </div>
+          <button class="btn btn-secondary" onclick="window.togglePaid(${index})">Quota</button>
+          <button class="btn btn-secondary" onclick="window.toggleDriver(${index})">Driver</button>
+          <button class="btn btn-danger" onclick="window.removeParticipant(${index})">🗑️</button>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    function openModal(id) { byId(id).classList.add('active'); }
+    function closeModal(id) {
+      byId(id).classList.remove('active');
+      if (id === 'addModal') {
+        byId('newName').value = '';
+        byId('newVegan').checked = false;
+        byId('newAstemio').checked = false;
+        byId('newDriver').checked = false;
+      }
+    }
+
+    async function addParticipant() {
+      const name = byId('newName').value.trim();
+      if (!name) return alert('Inserisci un nome.');
+      if (state.participants.some(p => p.name.toLowerCase() === name.toLowerCase())) return alert('Questo partecipante esiste già.');
+      state.participants.push({
+        name,
+        vegan: byId('newVegan').checked,
+        astemio: byId('newAstemio').checked,
+        driver: byId('newDriver').checked,
+        paid: false
+      });
+      ensureDriverCars();
+      await saveState({ participants: state.participants, cars: state.cars });
+      closeModal('addModal');
+    }
+
+    function openDriverModal() {
+      const wrap = byId('driverCheckboxes');
+      wrap.innerHTML = '';
+      state.participants.forEach((p, index) => {
+        const box = document.createElement('div');
+        box.className = 'panel';
+        box.style.marginBottom = '10px';
+        box.innerHTML = `
+          <label><input type="checkbox" ${p.driver ? 'checked' : ''} onchange="window.toggleDriver(${index})"> ${p.name}</label>
+        `;
+        wrap.appendChild(box);
+      });
+      openModal('driverModal');
+    }
+
+    window.toggleDriver = async (index) => {
+      state.participants[index].driver = !state.participants[index].driver;
+      ensureDriverCars();
+      await saveState({ participants: state.participants, cars: state.cars });
+      renderManagementList();
+      openDriverModal();
+    };
+
+    window.togglePaid = async (index) => {
+      state.participants[index].paid = !state.participants[index].paid;
+      await saveState({ participants: state.participants });
+    };
+
+    window.removeParticipant = async (index) => {
+      const name = state.participants[index].name;
+      if (!confirm(`Vuoi rimuovere ${name}?`)) return;
+      state.participants.splice(index, 1);
+      Object.keys(state.cars || {}).forEach(driver => {
+        state.cars[driver] = state.cars[driver].filter(p => p !== name);
+      });
+      delete state.cars[name];
+      await saveState({ participants: state.participants, cars: state.cars });
+    };
+
+    window.toggleShopping = async (encodedCategory, index) => {
+      const category = decodeURIComponent(encodedCategory);
+      state.shoppingList[category][index].done = !state.shoppingList[category][index].done;
+      await saveState({ shoppingList: state.shoppingList });
+    };
+
+    init();
+  </script>
+</body>
+</html>
