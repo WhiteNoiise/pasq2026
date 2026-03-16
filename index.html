@@ -272,12 +272,12 @@
         <div class="info-card">📍 Eurospin Carinaro (CE)</div>
         <div class="info-card">🎯 Via Cesine, 20/1, 82037 Castelvenere BN</div>
       </div>
-      <div id="syncBanner" class="status-banner">🔐 Accesso admin richiesto per caricare e vedere i dati.</div>
+      <div id="syncBanner" class="status-banner">👀 Modalità pubblica attiva: tutti possono vedere i dati, ma solo l'organizzatore può modificarli.</div>
       <div class="auth-toolbar">
         <button class="btn btn-secondary" id="adminModeBtn">🔐 Login organizzatore</button>
         <button class="btn btn-danger hidden" id="logoutBtn">🔒 Logout</button>
       </div>
-      <div id="editStatus" class="login-note">Senza login admin non vengono mostrati partecipanti, auto, preferenze, spesa e gestione.</div>
+      <div id="editStatus" class="login-note">Senza login admin puoi vedere tutti i dati dell'evento, ma non puoi modificarli.</div>
     </div>
 
     <div id="loginShell" class="login-shell">
@@ -290,7 +290,7 @@
       <div class="login-note" style="margin-top:16px;">Solo chi conosce la password può vedere il contenuto completo.</div>
     </div>
 
-    <div id="appShell" class="hidden">
+    <div id="appShell">
       <div class="meme-section">
         <h2 style="color: var(--pink);">😂 Mood della gita</h2>
         <img class="meme-img" id="memeImg" alt="Meme Pasquetta" src="https://pplx-res.cloudinary.com/image/upload/pplx_search_images/7a2af84952271d1217f1b54c9fc2108cea110152.jpg">
@@ -493,11 +493,11 @@
 
     function setLoggedOutUI() {
       byId('loginShell').classList.remove('hidden');
-      byId('appShell').classList.add('hidden');
+      byId('appShell').classList.remove('hidden');
       byId('logoutBtn').classList.add('hidden');
       syncBanner.classList.remove('ok');
-      syncBanner.textContent = '🔐 Accesso admin richiesto per caricare e vedere i dati.';
-      byId('editStatus').textContent = 'Senza login admin non vengono mostrati partecipanti, auto, preferenze, spesa e gestione.';
+      syncBanner.textContent = '👀 Modalità pubblica attiva: tutti possono vedere i dati, ma solo l'organizzatore può modificarli.';
+      byId('editStatus').textContent = 'Senza login admin puoi vedere tutti i dati dell'evento, ma non puoi modificarli.';
       byId('adminModeBtn').textContent = '🔐 Login organizzatore';
     }
 
@@ -507,7 +507,7 @@
       byId('logoutBtn').classList.remove('hidden');
       byId('adminModeBtn').textContent = '✅ Organizzatore attivo';
       syncBanner.classList.add('ok');
-      syncBanner.textContent = '✅ Modalità online attiva. Vedi e modifichi tutti i dati.';
+      syncBanner.textContent = '✅ Modalità organizzatore attiva. Vedi e modifichi tutti i dati.';
       byId('editStatus').textContent = '✍️ Accesso organizzatore attivo. Tutto è visibile e modificabile.';
     }
 
@@ -564,7 +564,7 @@
         }
         const rootRef = ref(db, DB_PATH);
         const snap = await get(rootRef);
-        if (!snap.exists()) await set(rootRef, defaultState);
+        if (!snap.exists() && isAdmin) await set(rootRef, defaultState);
         if (!unsubscribeAttached) {
           onValue(rootRef, (snapshot) => {
             state = snapshot.val() || structuredClone(defaultState);
@@ -585,7 +585,10 @@
     }
 
     async function saveState(partial = null) {
-      if (!isAdmin || !db) return;
+      if (!isAdmin || !db) {
+        alert('Solo l'organizzatore può modificare i dati.');
+        return;
+      }
       if (partial) await update(ref(db, DB_PATH), partial);
       else await set(ref(db, DB_PATH), state);
     }
@@ -627,7 +630,7 @@
             ${p.paid ? '<span class="badge badge-paid">💶 Pagato</span>' : ''}
           </div>
           <div style="margin-top:12px;">
-            <button class="btn btn-secondary" style="padding:8px 12px;" data-paid-index="${index}">${p.paid ? 'Annulla quota' : 'Segna quota'}</button>
+            <button class="btn btn-secondary" style="padding:8px 12px;" data-paid-index="${index}" ${isAdmin ? '' : 'disabled'}>${p.paid ? 'Annulla quota' : 'Segna quota'}</button>
           </div>
         `;
         list.appendChild(div);
@@ -662,13 +665,13 @@
       const chip = document.createElement('span');
       chip.className = 'passenger-item';
       chip.textContent = name;
-      chip.draggable = true;
+      chip.draggable = isAdmin;
       chip.addEventListener('dragstart', (ev) => {
         ev.dataTransfer.setData('personName', name);
         const fromDriver = Object.keys(state.cars || {}).find(d => (state.cars[d] || []).includes(name));
         ev.dataTransfer.setData('fromDriver', fromDriver || '');
       });
-      chip.addEventListener('dblclick', () => removeFromCars(name));
+      if (isAdmin) chip.addEventListener('dblclick', () => removeFromCars(name));
       return chip;
     }
 
@@ -696,8 +699,10 @@
           <div class="dropzone" data-driver="${driver.name}"></div>
         `;
         const dz = wrap.querySelector('.dropzone');
-        dz.addEventListener('dragover', ev => ev.preventDefault());
-        dz.addEventListener('drop', ev => handleDrop(ev, driver.name));
+        if (isAdmin) {
+          dz.addEventListener('dragover', ev => ev.preventDefault());
+          dz.addEventListener('drop', ev => handleDrop(ev, driver.name));
+        }
         passengers.forEach(name => dz.appendChild(createPassengerChip(name)));
         section.appendChild(wrap);
       });
@@ -707,12 +712,14 @@
     function renderUnassigned() {
       const box = byId('unassignedList');
       box.innerHTML = '';
-      box.addEventListener('dragover', ev => ev.preventDefault());
-      box.addEventListener('drop', ev => {
-        ev.preventDefault();
-        const name = ev.dataTransfer.getData('personName');
-        removeFromCars(name);
-      });
+      if (isAdmin) {
+        box.addEventListener('dragover', ev => ev.preventDefault());
+        box.addEventListener('drop', ev => {
+          ev.preventDefault();
+          const name = ev.dataTransfer.getData('personName');
+          removeFromCars(name);
+        });
+      }
       const assigned = Object.values(state.cars || {}).flat();
       const drivers = state.participants.filter(p => p.driver).map(p => p.name);
       const unassigned = state.participants.map(p => p.name).filter(name => !assigned.includes(name) && !drivers.includes(name));
@@ -770,7 +777,7 @@
           if (item.done) done += 1;
           return `
             <label class="shopping-item">
-              <input type="checkbox" ${item.done ? 'checked' : ''} data-category="${encodeURIComponent(category)}" data-shopping-index="${i}">
+              <input type="checkbox" ${item.done ? 'checked' : ''} ${isAdmin ? '' : 'disabled'} data-category="${encodeURIComponent(category)}" data-shopping-index="${i}">
               <span>${item.name}</span>
             </label>
           `;
@@ -800,9 +807,9 @@
             ${p.driver ? '<span class="badge badge-driver">🚗 Guidatore</span>' : ''}
             ${p.paid ? '<span class="badge badge-paid">💶 Pagato</span>' : ''}
           </div>
-          <button class="btn btn-secondary" data-driver-index="${index}">Driver</button>
-          <button class="btn btn-secondary" data-quota-index="${index}">Quota</button>
-          <button class="btn btn-danger" data-remove-index="${index}">🗑️</button>
+          <button class="btn btn-secondary" data-driver-index="${index}" ${isAdmin ? '' : 'disabled'}>Driver</button>
+          <button class="btn btn-secondary" data-quota-index="${index}" ${isAdmin ? '' : 'disabled'}>Quota</button>
+          <button class="btn btn-danger" data-remove-index="${index}" ${isAdmin ? '' : 'disabled'}>🗑️</button>
         `;
         list.appendChild(row);
       });
@@ -838,6 +845,10 @@
     function openDriverModal() {
       const wrap = byId('driverCheckboxes');
       wrap.innerHTML = '';
+      if (!isAdmin) {
+        alert('Solo l'organizzatore può gestire i guidatori.');
+        return;
+      }
       state.participants.forEach((p, index) => {
         const box = document.createElement('div');
         box.className = 'panel';
@@ -886,12 +897,9 @@
 
     function init() {
       bindUI();
-      if (isAdmin) {
-        setLoggedInUI();
-        initFirebase();
-      } else {
-        setLoggedOutUI();
-      }
+      if (isAdmin) setLoggedInUI();
+      else setLoggedOutUI();
+      initFirebase();
     }
 
     window.addEventListener('error', (e) => {
