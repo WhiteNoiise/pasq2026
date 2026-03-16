@@ -567,20 +567,24 @@
         if (!snap.exists() && isAdmin) await set(rootRef, defaultState);
         if (!unsubscribeAttached) {
           onValue(rootRef, (snapshot) => {
-            state = snapshot.val() || structuredClone(defaultState);
+            const value = snapshot.val();
+            state = value && Array.isArray(value.participants) ? value : structuredClone(defaultState);
             renderAll();
           });
           unsubscribeAttached = true;
         } else {
           const fresh = await get(rootRef);
-          state = fresh.val() || structuredClone(defaultState);
+          const value = fresh.val();
+          state = value && Array.isArray(value.participants) ? value : structuredClone(defaultState);
           renderAll();
         }
       } catch (err) {
         console.error(err);
+        state = structuredClone(defaultState);
+        renderAll();
         syncBanner.classList.remove('ok');
-        syncBanner.textContent = '❌ Errore Firebase: controlla file e configurazione.';
-        byId('editStatus').textContent = 'Errore di caricamento dati. Apri la console del browser.';
+        syncBanner.textContent = '👀 Modalità pubblica locale: vedi i dati base dell'evento, ma Firebase non ha risposto.';
+        byId('editStatus').textContent = 'I dati sono visibili in sola lettura. Per modificare resta necessario il login organizzatore.';
       }
     }
 
@@ -897,6 +901,8 @@
 
     function init() {
       bindUI();
+      state = structuredClone(defaultState);
+      renderAll();
       if (isAdmin) setLoggedInUI();
       else setLoggedOutUI();
       initFirebase();
