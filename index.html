@@ -33,9 +33,9 @@
       <div class="subtitle">Area Pic Nic Le Fontanelle</div>
       <div class="info-grid">
         <div class="info-card">📅 Lunedì 6 Aprile 2026</div>
-        <div class="info-card">🕖 Ritrovo ore 7:00</div>
-        <div class="info-card">📍 Eurospin Carinaro (CE)</div>
-        <div class="info-card">🎯 Via Cesine, 20/1, 82037 Castelvenere BN</div>
+        <div class="info-card">🕖 <span id="infoTime">Ritrovo ore 7:00</span></div>
+        <div class="info-card">📍 <span id="infoMeeting">Eurospin Carinaro (CE)</span></div>
+        <div class="info-card">🎯 <span id="infoDestination">Via Cesine, 20/1, 82037 Castelvenere BN</span></div>
       </div>
       <div id="syncBanner" class="status-banner">👀 Modalità pubblica attiva: tutti possono vedere i dati, ma solo l'organizzatore può modificarli.</div>
       <div class="map-links">
@@ -134,6 +134,26 @@
       <section id="gestione" class="content-section">
         <div class="card">
           <h2 style="color: var(--pink);">⚙️ Gestione</h2>
+          <div class="panel blue" style="margin-bottom:18px;">
+            <h3>📍 Informazioni evento</h3>
+            <div style="display:grid; gap:12px; margin-top:12px;">
+              <div>
+                <label>Punto di ritrovo</label>
+                <input type="text" id="editMeetingPoint" placeholder="Es. Eurospin Carinaro (CE)">
+              </div>
+              <div>
+                <label>Ora di ritrovo</label>
+                <input type="text" id="editMeetingTime" placeholder="Es. 7:00 oppure Ritrovo ore 7:00">
+              </div>
+              <div>
+                <label>Destinazione finale</label>
+                <input type="text" id="editDestination" placeholder="Es. Via Cesine, 20/1, 82037 Castelvenere BN">
+              </div>
+              <div class="toolbar">
+                <button class="btn btn-secondary" id="saveEventInfoBtn">💾 Salva info evento</button>
+              </div>
+            </div>
+          </div>
           <div class="toolbar">
             <button class="btn" id="addBtn">➕ Aggiungi partecipante</button>
             <button class="btn btn-secondary" id="driverBtn">🚗 Gestisci guidatori</button>
@@ -205,6 +225,9 @@
     const DB_PATH = 'pasquetta2026';
     const defaultState = {
       quotaPerPerson: 20,
+      meetingTime: 'Ritrovo ore 7:00',
+      meetingPoint: 'Eurospin Carinaro (CE)',
+      destination: 'Via Cesine, 20/1, 82037 Castelvenere BN',
       participants: [
         { name: 'Francesco Cesaro', vegan: false, astemio: false, driver: false, paid: false },
         { name: 'Maria Domenica Bortone', vegan: false, astemio: false, driver: false, paid: false },
@@ -257,7 +280,7 @@
     const byId = id => document.getElementById(id);
 
     function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
-    function safeState(value){ return value && Array.isArray(value.participants) ? value : clone(defaultState); }
+    function safeState(value){ if (!value || !Array.isArray(value.participants)) return clone(defaultState); const base = clone(defaultState); return Object.assign(base, value, { participants: value.participants || base.participants, cars: value.cars || base.cars, shoppingList: value.shoppingList || base.shoppingList }); }
     function ensureAdmin(action){ if (isAdmin) return true; alert('Solo l\'organizzatore può modificare i dati.'); return false; }
     function openModal(id){ byId(id).classList.add('active'); }
     function closeModal(id){ byId(id).classList.remove('active'); }
@@ -443,6 +466,24 @@
       byId('shoppingDone').classList.toggle('hidden', percent !== 100);
     }
 
+    function renderEventInfo(){
+      byId('infoTime').textContent = state.meetingTime || 'Ritrovo ore 7:00';
+      byId('infoMeeting').textContent = state.meetingPoint || 'Eurospin Carinaro (CE)';
+      byId('infoDestination').textContent = state.destination || 'Via Cesine, 20/1, 82037 Castelvenere BN';
+      const meetingInput = byId('editMeetingPoint');
+      const timeInput = byId('editMeetingTime');
+      const destinationInput = byId('editDestination');
+      if (meetingInput) {
+        meetingInput.value = state.meetingPoint || 'Eurospin Carinaro (CE)';
+        timeInput.value = state.meetingTime || 'Ritrovo ore 7:00';
+        destinationInput.value = state.destination || 'Via Cesine, 20/1, 82037 Castelvenere BN';
+        meetingInput.disabled = !isAdmin;
+        timeInput.disabled = !isAdmin;
+        destinationInput.disabled = !isAdmin;
+        byId('saveEventInfoBtn').disabled = !isAdmin;
+      }
+    }
+
     function renderManagementList(){
       const list = byId('managementList'); list.innerHTML = '';
       state.participants.forEach((p, index) => {
@@ -457,7 +498,7 @@
       });
     }
 
-    function renderAll(){ renderParticipants(); renderFood(); renderCars(); renderShopping(); renderManagementList(); }
+    function renderAll(){ renderEventInfo(); renderParticipants(); renderFood(); renderCars(); renderShopping(); renderManagementList(); }
 
     function resetAddModal(){ byId('newName').value=''; byId('newVegan').checked=false; byId('newAstemio').checked=false; byId('newDriver').checked=false; }
 
@@ -508,6 +549,20 @@
       byId('shoppingItemName').value = '';
     }
 
+    function saveEventInfo(){
+      if (!ensureAdmin()) return;
+      const meetingPoint = byId('editMeetingPoint').value.trim();
+      const meetingTime = byId('editMeetingTime').value.trim();
+      const destination = byId('editDestination').value.trim();
+      if (!meetingPoint) return alert('Inserisci il punto di ritrovo.');
+      if (!meetingTime) return alert("Inserisci l'ora di ritrovo.");
+      if (!destination) return alert('Inserisci la destinazione finale.');
+      state.meetingPoint = meetingPoint;
+      state.meetingTime = meetingTime.toLowerCase().includes('ritrovo') ? meetingTime : 'Ritrovo ore ' + meetingTime;
+      state.destination = destination;
+      saveState({ meetingPoint: state.meetingPoint, meetingTime: state.meetingTime, destination: state.destination });
+    }
+
     function addParticipant(){ if (!ensureAdmin()) return; const name = byId('newName').value.trim(); if (!name) return alert('Inserisci un nome.'); if (state.participants.some(p => p.name.toLowerCase() === name.toLowerCase())) return alert('Questo partecipante esiste già.'); state.participants.push({name:name, vegan:byId('newVegan').checked, astemio:byId('newAstemio').checked, driver:byId('newDriver').checked, paid:false}); ensureDriverCars(); saveState({participants: state.participants, cars: state.cars}); resetAddModal(); closeModal('addModal'); }
 
     function openDriverModal(){ if (!ensureAdmin()) return; const wrap = byId('driverCheckboxes'); wrap.innerHTML = ''; state.participants.forEach((p,index)=>{ const box = document.createElement('div'); box.className='panel'; box.style.marginBottom='10px'; box.innerHTML = '<label><input type="checkbox" '+(p.driver?'checked':'')+' onchange="window.toggleDriver('+index+')"> '+p.name+'</label>'; wrap.appendChild(box); }); openModal('driverModal'); }
@@ -519,6 +574,7 @@
       byId('loginBtn').addEventListener('click', loginAdmin);
       byId('loginPassword').addEventListener('keydown', function(e){ if (e.key === 'Enter') loginAdmin(); });
       byId('shoppingItemName').addEventListener('keydown', function(e){ if (e.key === 'Enter') saveShoppingModal(); });
+      ['editMeetingPoint','editMeetingTime','editDestination'].forEach(function(id){ byId(id).addEventListener('keydown', function(e){ if (e.key === 'Enter') saveEventInfo(); }); });
       byId('logoutBtn').addEventListener('click', function(){ isAdmin = false; localStorage.setItem('pasquetta2026-admin', '0'); updateTopUI(); renderAll(); });
       byId('memeImg').addEventListener('click', changeMeme);
       document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', function(){ showTab(btn.dataset.tab); }));
@@ -526,6 +582,7 @@
       byId('driverBtn').addEventListener('click', openDriverModal);
       byId('seedBtn').addEventListener('click', function(){ if (!ensureAdmin()) return; if (!confirm('Vuoi ripristinare i dati iniziali?')) return; state = clone(defaultState); saveState(); });
       byId('saveParticipantBtn').addEventListener('click', addParticipant);
+      byId('saveEventInfoBtn').addEventListener('click', saveEventInfo);
       byId('addCategoryBtn').addEventListener('click', function(){ if (!ensureAdmin()) return; shoppingTargetCategory = ''; byId('shoppingCategoryName').value = ''; byId('shoppingItemName').value = ''; openModal('shoppingModal'); });
       byId('saveShoppingModalBtn').addEventListener('click', saveShoppingModal);
       document.querySelectorAll('.close-modal').forEach(el => el.addEventListener('click', function(){ closeModal(el.dataset.close); }));
