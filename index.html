@@ -408,6 +408,7 @@
         } catch (err) {
           console.error(err);
           syncBanner.textContent = '⚠️ Firebase non collegato correttamente. L\'app funziona in locale finché non incolli i dati giusti.';
+          byId('editStatus').textContent = '❌ Errore JavaScript/Firebase. Controlla la console del browser o ricarica il file corretto.';
           renderAll();
         }
       } else {
@@ -465,12 +466,20 @@
     }
 
     function bindUI() {
+      window.openModal = openModal;
+      window.closeModal = closeModal;
       loadLocalBackup();
       document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', () => showTab(btn.dataset.tab)));
       byId('memeImg').addEventListener('click', changeMeme);
       byId('addBtn').addEventListener('click', () => isAdmin ? openModal('addModal') : openModal('adminModal'));
       byId('driverBtn').addEventListener('click', () => isAdmin ? openDriverModal() : openModal('adminModal'));
-      byId('adminModeBtn').addEventListener('click', () => isAdmin ? alert('Sei già in modalità organizzatore.') : openModal('adminModal'));
+      byId('adminModeBtn').addEventListener('click', () => {
+        if (isAdmin) {
+          alert('Sei già in modalità organizzatore.');
+          return;
+        }
+        openModal('adminModal');
+      });
       byId('logoutBtn').addEventListener('click', () => setAdminMode(false));
       byId('adminLoginBtn').addEventListener('click', () => {
         const value = byId('adminPasswordInput').value.trim();
@@ -478,6 +487,9 @@
         byId('adminPasswordInput').value = '';
         closeModal('adminModal');
         setAdminMode(true);
+      });
+      byId('adminPasswordInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') byId('adminLoginBtn').click();
       });
       byId('seedBtn').addEventListener('click', async () => {
         if (!requireAdmin()) return;
@@ -796,6 +808,11 @@
       state.shoppingList[category][index].done = !state.shoppingList[category][index].done;
       await saveState({ shoppingList: state.shoppingList });
     };
+
+    window.addEventListener('error', (e) => {
+      const box = byId('editStatus');
+      if (box) box.textContent = '❌ Errore JavaScript: ' + e.message;
+    });
 
     init();
   </script>
