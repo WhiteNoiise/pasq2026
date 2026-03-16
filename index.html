@@ -150,6 +150,9 @@
     }
     .status-banner.ok { background: #d3f9d8; color: #2b8a3e; }
     .small { font-size: .92rem; }
+    .auth-toolbar { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:15px; }
+    .viewer-note { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: #e7f5ff; color: #1864ab; font-weight: 700; }
+    .readonly-mask { opacity: .72; pointer-events: none; }
     @media (max-width: 840px) { .row { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -165,6 +168,11 @@
         <div class="info-card">🎯 Via Cesine, 20/1, 82037 Castelvenere BN</div>
       </div>
       <div id="syncBanner" class="status-banner">⚠️ Modalità locale attiva. Inserisci la configurazione Firebase per avere sincronizzazione online.</div>
+      <div class="auth-toolbar">
+        <button class="btn btn-secondary" id="adminModeBtn">🔐 Modalità organizzatore</button>
+        <button class="btn btn-danger" id="logoutBtn" style="display:none;">🔒 Blocca modifiche</button>
+      </div>
+      <div id="editStatus" class="viewer-note">👀 Modalità sola lettura attiva. Chi apre il link può vedere tutto, ma solo l'organizzatore può modificare.</div>
     </div>
 
     <div class="meme-section">
@@ -242,6 +250,7 @@
           <button class="btn btn-secondary" id="driverBtn">🚗 Gestisci guidatori</button>
           <button class="btn btn-secondary" id="seedBtn">🔄 Ripristina dati iniziali</button>
         </div>
+        <div id="managementLockNote" class="viewer-note" style="display:none;">🔐 Per modificare partecipanti, guidatori, quote e spesa devi entrare in modalità organizzatore.</div>
         <div id="managementList"></div>
       </div>
     </section>
@@ -269,6 +278,21 @@
       <span class="close-modal" data-close="driverModal">&times;</span>
       <h2 style="color: var(--pink);">Gestisci guidatori</h2>
       <div id="driverCheckboxes"></div>
+    </div>
+  </div>
+
+  <div id="adminModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" data-close="adminModal">&times;</span>
+      <h2 style="color: var(--pink);">🔐 Modalità organizzatore</h2>
+      <p class="muted">Inserisci la password per abilitare le modifiche su partecipanti, auto, quote e lista spesa.</p>
+      <div style="display:grid; gap:12px; margin-top:12px;">
+        <div>
+          <label>Password organizzatore</label>
+          <input type="text" id="adminPasswordInput" placeholder="Inserisci password">
+        </div>
+        <button class="btn" id="adminLoginBtn">Sblocca modifiche</button>
+      </div>
     </div>
   </div>
 
@@ -354,6 +378,8 @@
     let currentMemeIndex = 0;
     let db = null;
     let onlineMode = false;
+    let isAdmin = localStorage.getItem('pasquetta2026-admin') === '1';
+    const ADMIN_PASSWORD = 'pasquetta2026';
     const dbPath = 'pasquetta2026';
 
     const byId = (id) => document.getElementById(id);
@@ -390,6 +416,10 @@
     }
 
     async function saveState(partial = null) {
+      if (!isAdmin) {
+        updateAdminUI();
+        return;
+      }
       if (onlineMode && db) {
         if (partial) await update(ref(db, dbPath), partial);
         else await set(ref(db, dbPath), state);
@@ -397,6 +427,34 @@
         localStorage.setItem('pasquetta2026-local', JSON.stringify(state));
         renderAll();
       }
+    }
+
+    function requireAdmin() {
+      if (isAdmin) return true;
+      openModal('adminModal');
+      return false;
+    }
+
+    function updateAdminUI() {
+      const adminBtn = byId('adminModeBtn');
+      const logoutBtn = byId('logoutBtn');
+      const editStatus = byId('editStatus');
+      const lockNote = byId('managementLockNote');
+      adminBtn.textContent = isAdmin ? '✅ Modalità organizzatore attiva' : '🔐 Modalità organizzatore';
+      logoutBtn.style.display = isAdmin ? 'inline-block' : 'none';
+      editStatus.textContent = isAdmin
+        ? '✍️ Modalità organizzatore attiva. Puoi modificare tutto e le modifiche si sincronizzano per tutti.'
+        : '👀 Modalità sola lettura attiva. Chi apre il link può vedere tutto, ma solo l'organizzatore può modificare.';
+      editStatus.style.background = isAdmin ? '#d3f9d8' : '#e7f5ff';
+      editStatus.style.color = isAdmin ? '#2b8a3e' : '#1864ab';
+      lockNote.style.display = isAdmin ? 'none' : 'block';
+    }
+
+    function setAdminMode(value) {
+      isAdmin = value;
+      localStorage.setItem('pasquetta2026-admin', value ? '1' : '0');
+      updateAdminUI();
+      renderAll();
     }
 
     function loadLocalBackup() {
@@ -410,9 +468,19 @@
       loadLocalBackup();
       document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', () => showTab(btn.dataset.tab)));
       byId('memeImg').addEventListener('click', changeMeme);
-      byId('addBtn').addEventListener('click', () => openModal('addModal'));
-      byId('driverBtn').addEventListener('click', openDriverModal);
+      byId('addBtn').addEventListener('click', () => isAdmin ? openModal('addModal') : openModal('adminModal'));
+      byId('driverBtn').addEventListener('click', () => isAdmin ? openDriverModal() : openModal('adminModal'));
+      byId('adminModeBtn').addEventListener('click', () => isAdmin ? alert('Sei già in modalità organizzatore.') : openModal('adminModal'));
+      byId('logoutBtn').addEventListener('click', () => setAdminMode(false));
+      byId('adminLoginBtn').addEventListener('click', () => {
+        const value = byId('adminPasswordInput').value.trim();
+        if (value !== ADMIN_PASSWORD) return alert('Password errata.');
+        byId('adminPasswordInput').value = '';
+        closeModal('adminModal');
+        setAdminMode(true);
+      });
       byId('seedBtn').addEventListener('click', async () => {
+        if (!requireAdmin()) return;
         if (!confirm('Vuoi ripristinare i dati iniziali?')) return;
         state = structuredClone(defaultState);
         await saveState();
@@ -422,6 +490,7 @@
       window.addEventListener('click', (e) => {
         document.querySelectorAll('.modal.active').forEach(m => { if (e.target === m) m.classList.remove('active'); });
       });
+      updateAdminUI();
     }
 
     function showTab(tabName) {
@@ -439,6 +508,7 @@
     }
 
     function renderAll() {
+      updateAdminUI();
       renderParticipants();
       renderFood();
       renderCars();
@@ -461,7 +531,7 @@
             ${p.paid ? '<span class="badge badge-paid">💶 Pagato</span>' : ''}
           </div>
           <div style="margin-top:12px;">
-            <button class="btn btn-secondary" style="padding:8px 12px;" onclick="window.togglePaid(${index})">${p.paid ? 'Annulla quota' : 'Segna quota'}</button>
+            ${isAdmin ? `<button class="btn btn-secondary" style="padding:8px 12px;" onclick="window.togglePaid(${index})">${p.paid ? 'Annulla quota' : 'Segna quota'}</button>` : '<span class="badge" style="background:#ffffff33;color:white;">Solo organizzatore</span>'}
           </div>
         `;
         list.appendChild(div);
@@ -515,8 +585,12 @@
           <div class="dropzone" data-driver="${driver.name}"></div>
         `;
         const dz = wrap.querySelector('.dropzone');
-        dz.addEventListener('dragover', ev => ev.preventDefault());
-        dz.addEventListener('drop', ev => handleDrop(ev, driver.name));
+        if (isAdmin) {
+          dz.addEventListener('dragover', ev => ev.preventDefault());
+          dz.addEventListener('drop', ev => handleDrop(ev, driver.name));
+        } else {
+          dz.classList.add('readonly-mask');
+        }
         passengers.forEach(name => dz.appendChild(createPassengerChip(name)));
         section.appendChild(wrap);
       });
@@ -527,13 +601,13 @@
       const chip = document.createElement('span');
       chip.className = 'passenger-item';
       chip.textContent = name;
-      chip.draggable = true;
+      chip.draggable = isAdmin;
       chip.addEventListener('dragstart', (ev) => {
         ev.dataTransfer.setData('personName', name);
         const fromDriver = Object.keys(state.cars || {}).find(d => (state.cars[d] || []).includes(name));
         ev.dataTransfer.setData('fromDriver', fromDriver || '');
       });
-      chip.addEventListener('dblclick', () => removeFromCars(name));
+      if (isAdmin) chip.addEventListener('dblclick', () => removeFromCars(name));
       return chip;
     }
 
@@ -545,12 +619,14 @@
         .map(p => p.name)
         .filter(name => !assigned.includes(name) && !drivers.includes(name));
       box.innerHTML = '';
-      box.addEventListener('dragover', ev => ev.preventDefault());
-      box.addEventListener('drop', ev => {
-        ev.preventDefault();
-        const name = ev.dataTransfer.getData('personName');
-        removeFromCars(name);
-      });
+      if (isAdmin) {
+        box.addEventListener('dragover', ev => ev.preventDefault());
+        box.addEventListener('drop', ev => {
+          ev.preventDefault();
+          const name = ev.dataTransfer.getData('personName');
+          removeFromCars(name);
+        });
+      }
       if (!unassigned.length) {
         box.innerHTML = '<div class="muted">Tutti assegnati.</div>';
         return;
@@ -559,6 +635,7 @@
     }
 
     async function handleDrop(ev, toDriver) {
+      if (!requireAdmin()) return;
       ev.preventDefault();
       const name = ev.dataTransfer.getData('personName');
       const fromDriver = ev.dataTransfer.getData('fromDriver');
@@ -576,6 +653,7 @@
     }
 
     async function removeFromCars(name) {
+      if (!requireAdmin()) return;
       Object.keys(state.cars || {}).forEach(driver => {
         state.cars[driver] = state.cars[driver].filter(p => p !== name);
       });
@@ -604,7 +682,7 @@
           if (item.done) done += 1;
           return `
             <label class="shopping-item">
-              <input type="checkbox" ${item.done ? 'checked' : ''} onchange="window.toggleShopping('${encodeURIComponent(category)}', ${i})">
+              <input type="checkbox" ${item.done ? 'checked' : ''} ${isAdmin ? '' : 'disabled'} onchange="window.toggleShopping('${encodeURIComponent(category)}', ${i})">
               <span>${item.name}</span>
             </label>
           `;
@@ -633,9 +711,9 @@
             ${p.driver ? '<span class="badge badge-driver">🚗 Guidatore</span>' : ''}
             ${p.paid ? '<span class="badge badge-paid">💶 Pagato</span>' : ''}
           </div>
-          <button class="btn btn-secondary" onclick="window.togglePaid(${index})">Quota</button>
+          ${isAdmin ? `<button class="btn btn-secondary" onclick="window.togglePaid(${index})">Quota</button>
           <button class="btn btn-secondary" onclick="window.toggleDriver(${index})">Driver</button>
-          <button class="btn btn-danger" onclick="window.removeParticipant(${index})">🗑️</button>
+          <button class="btn btn-danger" onclick="window.removeParticipant(${index})">🗑️</button>` : '<div class="muted">Solo lettura</div><div class="muted">Solo lettura</div><div class="muted">Solo lettura</div>'}
         `;
         list.appendChild(row);
       });
@@ -653,6 +731,7 @@
     }
 
     async function addParticipant() {
+      if (!requireAdmin()) return;
       const name = byId('newName').value.trim();
       if (!name) return alert('Inserisci un nome.');
       if (state.participants.some(p => p.name.toLowerCase() === name.toLowerCase())) return alert('Questo partecipante esiste già.');
@@ -669,6 +748,7 @@
     }
 
     function openDriverModal() {
+      if (!requireAdmin()) return;
       const wrap = byId('driverCheckboxes');
       wrap.innerHTML = '';
       state.participants.forEach((p, index) => {
@@ -684,6 +764,7 @@
     }
 
     window.toggleDriver = async (index) => {
+      if (!requireAdmin()) return;
       state.participants[index].driver = !state.participants[index].driver;
       ensureDriverCars();
       await saveState({ participants: state.participants, cars: state.cars });
@@ -692,11 +773,13 @@
     };
 
     window.togglePaid = async (index) => {
+      if (!requireAdmin()) return;
       state.participants[index].paid = !state.participants[index].paid;
       await saveState({ participants: state.participants });
     };
 
     window.removeParticipant = async (index) => {
+      if (!requireAdmin()) return;
       const name = state.participants[index].name;
       if (!confirm(`Vuoi rimuovere ${name}?`)) return;
       state.participants.splice(index, 1);
@@ -708,6 +791,7 @@
     };
 
     window.toggleShopping = async (encodedCategory, index) => {
+      if (!requireAdmin()) return;
       const category = decodeURIComponent(encodedCategory);
       state.shoppingList[category][index].done = !state.shoppingList[category][index].done;
       await saveState({ shoppingList: state.shoppingList });
