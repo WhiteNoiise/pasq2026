@@ -18,7 +18,7 @@
     .participant-card{background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:16px;border-radius:18px;box-shadow:var(--shadow)}.participant-name{font-size:1.05rem;font-weight:800;margin-bottom:8px}
     .badge{display:inline-block;padding:6px 10px;border-radius:999px;margin:4px 5px 0 0;font-size:.78rem;font-weight:800}.badge-vegan{background:#d3f9d8;color:#1b4332}.badge-driver{background:#ffd43b;color:#5f3c00}.badge-astemio{background:#d0ebff;color:#0b7285}.badge-paid{background:#ffe3e3;color:#c92a2a}
     .muted{color:var(--muted)}.car-card{background:linear-gradient(135deg,#ff922b,#ff6b6b);color:white;padding:18px;border-radius:18px;margin-bottom:14px;box-shadow:var(--shadow)}.car-header{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px}.passengers-list,.dropzone{min-height:84px;border-radius:14px;padding:12px;background:rgba(255,255,255,.2)}.unassigned-box{background:#f1f3f5}.passenger-item{display:inline-block;margin:4px;padding:9px 12px;border-radius:999px;background:white;color:var(--text);font-weight:700;cursor:grab}.passenger-item.disabled{cursor:default;opacity:.7}
-    .shopping-category{background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,255,255,.92));border-radius:18px;padding:18px;box-shadow:var(--shadow)}.shopping-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed #e9ecef}.shopping-item:last-child{border-bottom:0}input[type="checkbox"]{width:18px;height:18px;cursor:pointer}input[type="text"],input[type="password"]{width:100%;border:2px solid #dee2e6;border-radius:12px;padding:12px;font-size:1rem}
+    .shopping-category{background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,255,255,.92));border-radius:18px;padding:18px;box-shadow:var(--shadow)}.shopping-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed #e9ecef}.shopping-item:last-child{border-bottom:0}.shopping-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.mini-btn{border:0;border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer;background:#f1f3f5;color:#343a40}.mini-btn:disabled{opacity:.45;cursor:not-allowed}.mini-btn.add{background:#d3f9d8;color:#2b8a3e}.mini-btn.del{background:#ffe3e3;color:#c92a2a}input[type="checkbox"]{width:18px;height:18px;cursor:pointer}input[type="text"],input[type="password"]{width:100%;border:2px solid #dee2e6;border-radius:12px;padding:12px;font-size:1rem}
     .progress-wrap{margin:15px 0 20px;background:#e9ecef;border-radius:999px;overflow:hidden;height:18px}.progress-bar{height:100%;width:0%;color:white;font-size:.75rem;text-align:center;background:linear-gradient(90deg,#12b886,#51cf66);transition:width .25s ease}
     .panel{background:#fff5f7;padding:18px;border-radius:18px;margin-bottom:15px}.panel.blue{background:#e7f5ff}.panel.green{background:#ebfbee}.row{display:grid;grid-template-columns:1.8fr 1fr 1fr auto;gap:10px;align-items:center;background:#f8f9fa;padding:14px;border-radius:16px;margin-bottom:10px}
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.58);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000}.modal.active{display:flex}.modal-content{width:min(560px,100%);background:white;border-radius:22px;padding:24px;box-shadow:0 18px 40px rgba(0,0,0,.35);max-height:90vh;overflow:auto}.close-modal{float:right;font-size:2rem;cursor:pointer;color:var(--pink)}
@@ -64,7 +64,7 @@
       <div class="meme-section">
         <h2 style="color: var(--pink);">😂 Mood della gita</h2>
         <img class="meme-img" id="memeImg" alt="Meme Pasquetta" src="https://pplx-res.cloudinary.com/image/upload/pplx_search_images/7a2af84952271d1217f1b54c9fc2108cea110152.jpg">
-        <div class="muted"> <h2>Clicca la foto per un po' di autismo.</h2></div>
+        <div class="muted"><h2>Clicca la foto per un po di autismo.</h2></div>
       </div>
 
       <div class="tabs">
@@ -123,6 +123,9 @@
         <div class="card">
           <h2 style="color: var(--pink);">🛒 Lista della spesa</h2>
           <div class="progress-wrap"><div id="progressBar" class="progress-bar">0%</div></div>
+          <div class="toolbar" style="margin-bottom:14px;">
+            <button class="btn btn-secondary" id="addCategoryBtn">➕ Aggiungi categoria</button>
+          </div>
           <div id="shoppingGrid" class="shopping-grid"></div>
           <div id="shoppingDone" class="inline-note hidden">🎉 Spesa completata!</div>
         </div>
@@ -155,6 +158,24 @@
         <label><input type="checkbox" id="newAstemio"> 💧 Astemio</label>
         <label><input type="checkbox" id="newDriver"> 🚗 Guidatore</label>
         <button class="btn" id="saveParticipantBtn">Salva</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="shoppingModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" data-close="shoppingModal">&times;</span>
+      <h2 style="color: var(--pink);">🛒 Aggiungi elemento spesa</h2>
+      <div style="display:grid; gap:12px;">
+        <div>
+          <label>Nome categoria</label>
+          <input type="text" id="shoppingCategoryName" placeholder="Es. Dolci">
+        </div>
+        <div>
+          <label>Nome prodotto</label>
+          <input type="text" id="shoppingItemName" placeholder="Es. Colomba">
+        </div>
+        <button class="btn" id="saveShoppingModalBtn">Salva</button>
       </div>
     </div>
   </div>
@@ -225,7 +246,7 @@
       'images/m4.jpg',
       'images/m5.jpg',
       'images/m6.jpg',
-      'images/m7.jpg',
+      'images/m7.jpg'
     ];
 
     let state = JSON.parse(JSON.stringify(defaultState));
@@ -408,8 +429,12 @@
         let rows = '<h3 style="color: var(--purple);">'+category+'</h3>';
         items.forEach((item, i) => {
           total += 1; if (item.done) done += 1;
-          rows += '<label class="shopping-item"><input type="checkbox" '+(item.done?'checked':'')+' '+(isAdmin?'':'disabled')+' onchange="window.toggleShopping(\''+encodeURIComponent(category)+'\','+i+')"><span>'+item.name+'</span></label>';
+          rows += '<label class="shopping-item"><input type="checkbox" '+(item.done?'checked':'')+' '+(isAdmin?'':'disabled')+' onchange="window.toggleShopping(\''+encodeURIComponent(category)+'\','+i+')"><span>'+item.name+'</span>'+(isAdmin?'<button class="mini-btn del" type="button" onclick="window.removeShoppingItem(\''+encodeURIComponent(category)+'\','+i+')">🗑️</button>':'')+'</label>';
         });
+        rows += '<div class="shopping-actions">'
+          + '<button class="mini-btn add" '+(isAdmin?'':'disabled')+' type="button" onclick="window.openShoppingModal(\''+encodeURIComponent(category)+'\')">➕ Aggiungi prodotto</button>'
+          + '<button class="mini-btn del" '+(isAdmin?'':'disabled')+' type="button" onclick="window.removeShoppingCategory(\''+encodeURIComponent(category)+'\')">🗑️ Elimina categoria</button>'
+          + '</div>';
         card.innerHTML = rows; grid.appendChild(card);
       });
       const percent = total ? Math.round((done / total) * 100) : 0;
@@ -443,6 +468,46 @@
     window.handleDrop = function(ev, toDriver){ if (!ensureAdmin()) return; ev.preventDefault(); const name = ev.dataTransfer.getData('personName'); const fromDriver = ev.dataTransfer.getData('fromDriver'); if (!name || name===toDriver) return; ensureDriverCars(); const list = state.cars[toDriver] || []; if (list.includes(name)) return; if ((list.length + 1) >= 4) { alert('Questa auto ha già 4 persone totali, guidatore compreso.'); return; } if (fromDriver && state.cars[fromDriver]) state.cars[fromDriver] = state.cars[fromDriver].filter(p => p !== name); state.cars[toDriver].push(name); saveState({cars: state.cars}); };
     window.toggleShopping = function(encodedCategory, index){ if (!ensureAdmin()) return; const category = decodeURIComponent(encodedCategory); state.shoppingList[category][index].done = !state.shoppingList[category][index].done; saveState({shoppingList: state.shoppingList}); };
 
+    window.openShoppingModal = function(encodedCategory){
+      if (!ensureAdmin()) return;
+      shoppingTargetCategory = encodedCategory ? decodeURIComponent(encodedCategory) : '';
+      byId('shoppingCategoryName').value = shoppingTargetCategory;
+      byId('shoppingItemName').value = '';
+      openModal('shoppingModal');
+      byId('shoppingItemName').focus();
+    };
+
+    window.removeShoppingItem = function(encodedCategory, index){
+      if (!ensureAdmin()) return;
+      const category = decodeURIComponent(encodedCategory);
+      if (!state.shoppingList[category]) return;
+      state.shoppingList[category].splice(index, 1);
+      if (!state.shoppingList[category].length) delete state.shoppingList[category];
+      saveState({shoppingList: state.shoppingList});
+    };
+
+    window.removeShoppingCategory = function(encodedCategory){
+      if (!ensureAdmin()) return;
+      const category = decodeURIComponent(encodedCategory);
+      if (!confirm('Vuoi eliminare la categoria "' + category + '"?')) return;
+      delete state.shoppingList[category];
+      saveState({shoppingList: state.shoppingList});
+    };
+
+    function saveShoppingModal(){
+      if (!ensureAdmin()) return;
+      const category = byId('shoppingCategoryName').value.trim();
+      const item = byId('shoppingItemName').value.trim();
+      if (!category) return alert('Inserisci il nome della categoria.');
+      if (!item) return alert('Inserisci il nome del prodotto.');
+      if (!state.shoppingList[category]) state.shoppingList[category] = [];
+      state.shoppingList[category].push({ name: item, done: false });
+      saveState({shoppingList: state.shoppingList});
+      closeModal('shoppingModal');
+      byId('shoppingCategoryName').value = '';
+      byId('shoppingItemName').value = '';
+    }
+
     function addParticipant(){ if (!ensureAdmin()) return; const name = byId('newName').value.trim(); if (!name) return alert('Inserisci un nome.'); if (state.participants.some(p => p.name.toLowerCase() === name.toLowerCase())) return alert('Questo partecipante esiste già.'); state.participants.push({name:name, vegan:byId('newVegan').checked, astemio:byId('newAstemio').checked, driver:byId('newDriver').checked, paid:false}); ensureDriverCars(); saveState({participants: state.participants, cars: state.cars}); resetAddModal(); closeModal('addModal'); }
 
     function openDriverModal(){ if (!ensureAdmin()) return; const wrap = byId('driverCheckboxes'); wrap.innerHTML = ''; state.participants.forEach((p,index)=>{ const box = document.createElement('div'); box.className='panel'; box.style.marginBottom='10px'; box.innerHTML = '<label><input type="checkbox" '+(p.driver?'checked':'')+' onchange="window.toggleDriver('+index+')"> '+p.name+'</label>'; wrap.appendChild(box); }); openModal('driverModal'); }
@@ -453,6 +518,7 @@
       byId('adminModeBtn').addEventListener('click', function(){ openModal('loginShell'); byId('loginPassword').focus(); });
       byId('loginBtn').addEventListener('click', loginAdmin);
       byId('loginPassword').addEventListener('keydown', function(e){ if (e.key === 'Enter') loginAdmin(); });
+      byId('shoppingItemName').addEventListener('keydown', function(e){ if (e.key === 'Enter') saveShoppingModal(); });
       byId('logoutBtn').addEventListener('click', function(){ isAdmin = false; localStorage.setItem('pasquetta2026-admin', '0'); updateTopUI(); renderAll(); });
       byId('memeImg').addEventListener('click', changeMeme);
       document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', function(){ showTab(btn.dataset.tab); }));
@@ -460,6 +526,8 @@
       byId('driverBtn').addEventListener('click', openDriverModal);
       byId('seedBtn').addEventListener('click', function(){ if (!ensureAdmin()) return; if (!confirm('Vuoi ripristinare i dati iniziali?')) return; state = clone(defaultState); saveState(); });
       byId('saveParticipantBtn').addEventListener('click', addParticipant);
+      byId('addCategoryBtn').addEventListener('click', function(){ if (!ensureAdmin()) return; shoppingTargetCategory = ''; byId('shoppingCategoryName').value = ''; byId('shoppingItemName').value = ''; openModal('shoppingModal'); });
+      byId('saveShoppingModalBtn').addEventListener('click', saveShoppingModal);
       document.querySelectorAll('.close-modal').forEach(el => el.addEventListener('click', function(){ closeModal(el.dataset.close); }));
       window.addEventListener('click', function(e){ document.querySelectorAll('.modal.active').forEach(m => { if (e.target === m) m.classList.remove('active'); }); });
       window.addEventListener('error', function(e){ byId('syncBanner').textContent = '❌ Errore JavaScript: ' + e.message; });
