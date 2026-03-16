@@ -33,7 +33,7 @@
       <div class="subtitle">Area Pic Nic Le Fontanelle</div>
       <div class="info-grid">
         <div class="info-card">📅 Lunedì 6 Aprile 2026</div>
-        <div class="info-card">🕖 <span id="infoTime">Ritrovo ore 7:00</span></div>
+        <div class="info-card">🕖 <span id="infoTime">Ritrovo ore 9:00</span></div>
         <div class="info-card">📍 <span id="infoMeeting">Eurospin Carinaro (CE)</span></div>
         <div class="info-card">🎯 <span id="infoDestination">Via Cesine, 20/1, 82037 Castelvenere BN</span></div>
       </div>
@@ -225,7 +225,7 @@
     const DB_PATH = 'pasquetta2026';
     const defaultState = {
       quotaPerPerson: 20,
-      meetingTime: 'Ritrovo ore 7:00',
+      meetingTime: 'Ritrovo ore 9:00',
       meetingPoint: 'Eurospin Carinaro (CE)',
       destination: 'Via Cesine, 20/1, 82037 Castelvenere BN',
       participants: [
@@ -467,7 +467,7 @@
     }
 
     function renderEventInfo(){
-      byId('infoTime').textContent = state.meetingTime || 'Ritrovo ore 7:00';
+      byId('infoTime').textContent = state.meetingTime || 'Ritrovo ore 9:00';
       byId('infoMeeting').textContent = state.meetingPoint || 'Eurospin Carinaro (CE)';
       byId('infoDestination').textContent = state.destination || 'Via Cesine, 20/1, 82037 Castelvenere BN';
       const meetingInput = byId('editMeetingPoint');
@@ -475,7 +475,7 @@
       const destinationInput = byId('editDestination');
       if (meetingInput) {
         meetingInput.value = state.meetingPoint || 'Eurospin Carinaro (CE)';
-        timeInput.value = state.meetingTime || 'Ritrovo ore 7:00';
+        timeInput.value = state.meetingTime || 'Ritrovo ore 9:00';
         destinationInput.value = state.destination || 'Via Cesine, 20/1, 82037 Castelvenere BN';
         meetingInput.disabled = !isAdmin;
         timeInput.disabled = !isAdmin;
